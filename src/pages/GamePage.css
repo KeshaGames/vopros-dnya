@@ -310,16 +310,23 @@
     overflow-y: visible;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 24px calc(50vw - 100px);
+    padding: 24px 0;
     gap: 16px;
-    box-sizing: border-box;
     transform: none;
     transform-origin: unset;
   }
 
   .fan-container::-webkit-scrollbar {
     display: none;
+  }
+
+  /* First/last card: margin so snap can reach center */
+  .fan-container .card-wrapper:first-child {
+    margin-left: calc(50vw - 100px);
+  }
+
+  .fan-container .card-wrapper:last-child {
+    margin-right: calc(50vw - 100px);
   }
 
   /* Base: relative-positioned flow card */

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { CardSlot, CardAnimState } from '../../types';
 import './Card.css';
 
@@ -35,9 +35,22 @@ export default function Card({
   slot, cardIndex, animState, enterDelay, onSelect, onLike, onDislike,
 }: CardProps) {
   const [voted, setVoted] = useState<'like' | 'dislike' | null>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const pos = FAN_POSITIONS[cardIndex] ?? FAN_POSITIONS[1];
   const isFlipped = animState === 'flipped';
   const isClickable = animState === 'resting';
+
+  useEffect(() => {
+    if (animState === 'centering' && wrapperRef.current) {
+      if (window.matchMedia('(max-width: 600px)').matches) {
+        wrapperRef.current.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest',
+        });
+      }
+    }
+  }, [animState]);
 
   const cssVars = {
     '--fan-x': `${pos.x}px`,
@@ -63,6 +76,7 @@ export default function Card({
 
   return (
     <div
+      ref={wrapperRef}
       className={`card-wrapper state-${animState}`}
       style={cssVars}
       onClick={isClickable ? onSelect : undefined}
@@ -70,7 +84,7 @@ export default function Card({
       <div className={`card-inner${isFlipped ? ' flipped' : ''}`}>
         <div className="card-face card-front">
           <div className="card-icon">{slot.recipe.icon}</div>
-          <div className={`card-recipe-name${slot.recipe.name.length > 12 ? ' long-name' : ''}`}>{slot.recipe.name}</div>
+          <div lang="ru" className={`card-recipe-name${slot.recipe.name.length > 15 ? ' long-name' : ''}`}>{slot.recipe.name}</div>
           <div className="card-axes">
             <AxisDots value={slot.recipe.complexity}     label="Сложность" />
             <AxisDots value={slot.recipe.provocation}    label="Провокационность" />
