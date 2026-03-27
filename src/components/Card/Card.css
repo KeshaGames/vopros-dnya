@@ -1,0 +1,301 @@
+/* ── Playing card: 2:3 ratio, absolutely placed in fan container ── */
+.card-wrapper {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 220px;
+  height: 330px;
+  z-index: var(--card-z, 1);
+  transform: translate(calc(-50% + var(--fan-x)), calc(-50% + var(--fan-y))) rotate(var(--fan-r));
+  transition: transform 0.55s cubic-bezier(0.34, 1.3, 0.64, 1), opacity 0.4s ease;
+  cursor: default;
+  will-change: transform;
+  perspective: 1000px;
+}
+
+/* ── Entering: drop from above with bounce, staggered ── */
+.card-wrapper.state-entering {
+  animation: cardDrop 0.75s cubic-bezier(0.34, 1.4, 0.64, 1) var(--enter-delay, 0ms) both;
+  transition: none;
+}
+
+@keyframes cardDrop {
+  from {
+    transform: translate(calc(-50% + var(--fan-x)), -700px) rotate(0deg);
+    opacity: 0;
+  }
+  to {
+    transform: translate(calc(-50% + var(--fan-x)), calc(-50% + var(--fan-y))) rotate(var(--fan-r));
+    opacity: 1;
+  }
+}
+
+/* ── Resting: hover lift ── */
+.card-wrapper.state-resting {
+  cursor: pointer;
+}
+
+.card-wrapper.state-resting:hover {
+  z-index: 5;
+  transform: translate(calc(-50% + var(--fan-x)), calc(-50% + var(--fan-y) - 18px)) rotate(var(--fan-r));
+}
+
+/* ── Fly off ── */
+.card-wrapper.state-fly-left {
+  transform: translate(calc(-50% - 130vw), calc(-50% + 80px)) rotate(-40deg) !important;
+  opacity: 0;
+  transition: transform 0.5s ease-in, opacity 0.45s ease-in !important;
+  pointer-events: none;
+}
+
+.card-wrapper.state-fly-right {
+  transform: translate(calc(-50% + 130vw), calc(-50% + 80px)) rotate(40deg) !important;
+  opacity: 0;
+  transition: transform 0.5s ease-in, opacity 0.45s ease-in !important;
+  pointer-events: none;
+}
+
+/* ── Selected: center and straighten, then flip ── */
+.card-wrapper.state-centering,
+.card-wrapper.state-flipped {
+  transform: translate(-50%, -50%) rotate(0deg) !important;
+  transition: transform 0.5s ease-out, width 0.35s ease, height 0.35s ease !important;
+  z-index: 10 !important;
+  width: 260px;
+  height: 390px;
+}
+
+/* ── Inner flip mechanism ── */
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+/* ── Card faces ── */
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.card-front {
+  background: linear-gradient(160deg, #23203a 0%, #2a2550 60%, #1a1530 100%);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  padding: 22px 20px 16px;
+  gap: 0;
+  overflow: hidden;
+}
+
+.card-back {
+  background: linear-gradient(150deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+  border: 2px solid rgba(99, 179, 237, 0.3);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: rotateY(180deg);
+  padding: 20px 18px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Front: icon ── */
+.card-icon {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 10px;
+  align-self: flex-start;
+}
+
+/* ── Front: recipe name CAPS ── */
+.card-recipe-name {
+  font-size: clamp(17px, 4.5vw, 22px);
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #f5f3ff;
+  line-height: 1.1;
+  letter-spacing: 0.4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  margin-bottom: auto;
+  padding-bottom: 14px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.card-recipe-name.long-name {
+  font-size: clamp(13px, 3.5vw, 16px);
+  letter-spacing: 0.2px;
+}
+
+/* ── Front: axis dots ── */
+.card-axes {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  margin-top: 0;
+}
+
+.card-axis-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.card-axis-dots {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.card-axis-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  flex-shrink: 0;
+}
+
+.card-axis-dot.active {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.35);
+}
+
+.card-axis-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+
+.card-tap-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.3px;
+  margin-top: 10px;
+  align-self: center;
+}
+
+/* ── Back: question ── */
+.card-question-text {
+  font-size: clamp(13px, 3vw, 16px);
+  font-weight: 500;
+  color: #e2e8f0;
+  text-align: center;
+  line-height: 1.6;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 0 2px;
+  word-break: break-word;
+}
+
+/* ── Back: actions ── */
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+}
+
+.card-btn-clarify {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(99, 179, 237, 0.1);
+  border: 1px solid rgba(99, 179, 237, 0.28);
+  border-radius: 10px;
+  color: #90cdf4;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.card-btn-clarify:hover {
+  background: rgba(99, 179, 237, 0.2);
+}
+
+.card-vote-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.card-btn-vote {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 700;
+}
+
+.card-btn-vote.like {
+  background: rgba(72, 187, 120, 0.1);
+  border-color: rgba(72, 187, 120, 0.35);
+  color: #68d391;
+}
+
+.card-btn-vote.like:hover:not(.voted) {
+  background: rgba(72, 187, 120, 0.22);
+  transform: scale(1.04);
+}
+
+.card-btn-vote.dislike {
+  background: rgba(245, 101, 101, 0.1);
+  border-color: rgba(245, 101, 101, 0.35);
+  color: #fc8181;
+}
+
+.card-btn-vote.dislike:hover:not(.voted) {
+  background: rgba(245, 101, 101, 0.22);
+  transform: scale(1.04);
+}
+
+.card-btn-vote.voted {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Disable all hover effects on touch devices ── */
+@media (hover: none) {
+  .card-wrapper.state-resting:hover {
+    z-index: var(--card-z, 1);
+    transform: translate(calc(-50% + var(--fan-x)), calc(-50% + var(--fan-y))) rotate(var(--fan-r));
+  }
+
+  .card-btn-clarify:hover {
+    background: rgba(99, 179, 237, 0.1);
+  }
+
+  .card-btn-vote.like:hover:not(.voted) {
+    background: rgba(72, 187, 120, 0.1);
+    transform: none;
+  }
+
+  .card-btn-vote.dislike:hover:not(.voted) {
+    background: rgba(245, 101, 101, 0.1);
+    transform: none;
+  }
+}
