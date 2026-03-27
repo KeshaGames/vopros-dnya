@@ -41,14 +41,15 @@ export default function Card({
   const isClickable = animState === 'resting';
 
   useEffect(() => {
-    if (animState === 'centering' && wrapperRef.current) {
+    if (!wrapperRef.current) return;
+    if (animState === 'centering') {
       if (window.matchMedia('(max-width: 600px)').matches) {
-        wrapperRef.current.scrollIntoView({
-          behavior: 'smooth',
-          inline: 'center',
-          block: 'nearest',
-        });
+        const rect = wrapperRef.current.getBoundingClientRect();
+        const offset = window.innerWidth / 2 - (rect.left + rect.width / 2);
+        wrapperRef.current.style.setProperty('--mobile-center-offset', `${offset}px`);
       }
+    } else if (animState !== 'flipped') {
+      wrapperRef.current.style.removeProperty('--mobile-center-offset');
     }
   }, [animState]);
 

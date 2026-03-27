@@ -96,6 +96,7 @@ export default function GamePage() {
   const [drawCount, setDrawCount] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalCategories, setModalCategories] = useState<QuestionCategory[]>(['party', 'dating']);
+  const [showNextButton, setShowNextButton] = useState(false);
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const clearTimers = () => {
@@ -125,6 +126,7 @@ export default function GamePage() {
     setGamePhase('start');
     setCards([]);
     setCardStates([]);
+    setShowNextButton(false);
   };
 
   const openModal = () => {
@@ -188,6 +190,7 @@ export default function GamePage() {
     setGamePhase('choosing');
     setUsedQuestionIds(currentSeen);
     setDrawCount(c => c + 1);
+    setShowNextButton(false);
 
     newCards.forEach((_, i) => {
       const t = setTimeout(() => {
@@ -204,6 +207,7 @@ export default function GamePage() {
   const handleSelect = useCallback((index: number) => {
     if (gamePhase !== 'choosing') return;
     setGamePhase('selected');
+    setShowNextButton(false);
 
     const selectedX = FAN_X[index];
     const newStates: CardAnimState[] = cardStates.map((_, i) => {
@@ -214,6 +218,8 @@ export default function GamePage() {
 
     const t = setTimeout(() => {
       setCardStates(prev => prev.map((s, i) => (i === index ? 'flipped' : s)));
+      const t2 = setTimeout(() => setShowNextButton(true), 850);
+      timerRefs.current.push(t2);
     }, 550);
     timerRefs.current.push(t);
   }, [gamePhase, cardStates]);
@@ -290,10 +296,10 @@ export default function GamePage() {
           </div>
 
           <div className="game-bottom">
-            {gamePhase === 'selected' && (
+            {showNextButton && (
               <div className="game-next-row">
                 <button className="game-btn-next" onClick={drawCards}>
-                  🔄 Следующий вопрос
+                  Следующий вопрос
                 </button>
                 <p className="game-pool-hint">{remainingCount} вопросов осталось</p>
               </div>
