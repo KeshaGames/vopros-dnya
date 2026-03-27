@@ -94,6 +94,8 @@ export default function GamePage() {
   const [activeCategories, setActiveCategories] = useState<QuestionCategory[]>(['party', 'dating']);
   const [exhausted, setExhausted] = useState(false);
   const [drawCount, setDrawCount] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalCategories, setModalCategories] = useState<QuestionCategory[]>(['party', 'dating']);
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const clearTimers = () => {
@@ -123,6 +125,32 @@ export default function GamePage() {
     setGamePhase('start');
     setCards([]);
     setCardStates([]);
+  };
+
+  const openModal = () => {
+    setModalCategories([...activeCategories]);
+    setModalOpen(true);
+  };
+
+  const applyModal = () => {
+    setActiveCategories(modalCategories);
+    setModalOpen(false);
+  };
+
+  const toggleModalCategory = (cat: QuestionCategory) => {
+    setModalCategories(prev => {
+      if (cat === 'kids') {
+        if (prev.includes('kids')) {
+          return prev.length === 1 ? prev : prev.filter(c => c !== 'kids');
+        }
+        return ['kids'];
+      } else {
+        if (prev.includes(cat)) {
+          return prev.length === 1 ? prev : prev.filter(c => c !== cat);
+        }
+        return [...prev.filter(c => c !== 'kids'), cat];
+      }
+    });
   };
 
   const drawCards = useCallback(() => {
@@ -192,6 +220,19 @@ export default function GamePage() {
 
   const filteredQsTotal = questions.filter(q => activeCategories.includes(q.category));
   const remainingCount = filteredQsTotal.filter(q => !usedQuestionIds.has(q.id)).length;
+  const modalFilteredQsTotal = questions.filter(q => modalCategories.includes(q.category));
+
+  const categoryToggles = (cats: QuestionCategory[], onToggle: (c: QuestionCategory) => void) =>
+    CATEGORIES.map(cat => (
+      <button
+        key={cat.id}
+        className={`category-btn category-btn--${cat.id}${cats.includes(cat.id) ? ' active' : ''}`}
+        onClick={() => onToggle(cat.id)}
+      >
+        <span className="category-btn-emoji">{cat.emoji}</span>
+        <span className="category-btn-label">{cat.label}</span>
+      </button>
+    ));
 
   return (
     <div className="game-page">
@@ -200,19 +241,6 @@ export default function GamePage() {
         <h1 className="game-title">Вопрос дня</h1>
         <p className="game-subtitle">Словесная игра для вечеринок и свиданий</p>
       </header>
-
-      <div className="category-filters">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.id}
-            className={`category-btn category-btn--${cat.id}${activeCategories.includes(cat.id) ? ' active' : ''}`}
-            onClick={() => toggleCategory(cat.id)}
-          >
-            <span className="category-btn-emoji">{cat.emoji}</span>
-            <span className="category-btn-label">{cat.label}</span>
-          </button>
-        ))}
-      </div>
 
       {exhausted ? (
         <div className="game-exhausted">
@@ -224,18 +252,26 @@ export default function GamePage() {
           <button className="game-btn-next" onClick={handleRestart}>
             Начать заново
           </button>
+          <button className="game-change-cat-link" onClick={openModal}>
+            Сменить категорию
+          </button>
         </div>
       ) : gamePhase === 'start' ? (
-        <div className="game-start">
-          <p className="game-start-desc">
-            Нажмите кнопку, чтобы получить три карточки с вопросами разной интенсивности.
-            Выберите одну — и отвечайте честно!
-          </p>
-          <button className="game-btn-next" onClick={drawCards}>
-            Начать игру
-          </button>
-          <p className="game-pool-hint">{filteredQsTotal.length} вопросов в выбранных тематиках</p>
-        </div>
+        <>
+          <div className="category-filters">
+            {categoryToggles(activeCategories, toggleCategory)}
+          </div>
+          <div className="game-start">
+            <p className="game-start-desc">
+              Нажмите кнопку, чтобы получить три карточки с вопросами разной интенсивности.
+              Выберите одну — и отвечайте честно!
+            </p>
+            <button className="game-btn-next" onClick={drawCards}>
+              Начать игру
+            </button>
+            <p className="game-pool-hint">{filteredQsTotal.length} вопросов в выбранных тематиках</p>
+          </div>
+        </>
       ) : (
         <>
           <div className="fan-container">
@@ -253,17 +289,36 @@ export default function GamePage() {
             ))}
           </div>
 
-          {gamePhase === 'selected' && (
-            <div className="game-next-row">
-              <button className="game-btn-next" onClick={drawCards}>
-                🔄 Следующий вопрос
-              </button>
-              <p className="game-pool-hint">{remainingCount} вопросов осталось</p>
-            </div>
-          )}
+          <div className="game-bottom">
+            {gamePhase === 'selected' && (
+              <div className="game-next-row">
+                <button className="game-btn-next" onClick={drawCards}>
+                  🔄 Следующий вопрос
+                </button>
+                <p className="game-pool-hint">{remainingCount} вопросов осталось</p>
+              </div>
+            )}
+            <button className="game-change-cat-link" onClick={openModal}>
+              Сменить категорию
+            </button>
+          </div>
         </>
       )}
 
+      {modalOpen && (
+        <div className="modal-overlay" onClick={() => setModalOpen(false)}>
+          <div className="modal-card" onClick={e => e.stopPropagation()}>
+            <h3 className="modal-title">Тематики</h3>
+            <div className="category-filters">
+              {categoryToggles(modalCategories, toggleModalCategory)}
+            </div>
+            <p className="game-pool-hint">{modalFilteredQsTotal.length} вопросов в выбранных тематиках</p>
+            <button className="game-btn-next" onClick={applyModal}>
+              Применить
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
