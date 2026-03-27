@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import type { CardSlot, CardAnimState } from '../../types';
 import './Card.css';
 
@@ -35,23 +35,9 @@ export default function Card({
   slot, cardIndex, animState, enterDelay, onSelect, onLike, onDislike,
 }: CardProps) {
   const [voted, setVoted] = useState<'like' | 'dislike' | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const pos = FAN_POSITIONS[cardIndex] ?? FAN_POSITIONS[1];
   const isFlipped = animState === 'flipped';
   const isClickable = animState === 'resting';
-
-  useEffect(() => {
-    if (!wrapperRef.current) return;
-    if (animState === 'centering') {
-      if (window.matchMedia('(max-width: 600px)').matches) {
-        const rect = wrapperRef.current.getBoundingClientRect();
-        const offset = window.innerWidth / 2 - (rect.left + rect.width / 2);
-        wrapperRef.current.style.setProperty('--mobile-center-offset', `${offset}px`);
-      }
-    } else if (animState !== 'flipped') {
-      wrapperRef.current.style.removeProperty('--mobile-center-offset');
-    }
-  }, [animState]);
 
   const cssVars = {
     '--fan-x': `${pos.x}px`,
@@ -77,7 +63,6 @@ export default function Card({
 
   return (
     <div
-      ref={wrapperRef}
       className={`card-wrapper state-${animState}`}
       style={cssVars}
       onClick={isClickable ? onSelect : undefined}

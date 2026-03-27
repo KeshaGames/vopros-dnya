@@ -71,7 +71,7 @@ const GROUPS: { group: WeightGroup; min: number; max: number }[] = [
   { group: 'high', min: 7, max: 9 },
 ];
 
-const ENTER_DELAYS = [0, 160, 320];
+const ENTER_DELAYS = [0, 150, 300];
 const FAN_X = [-150, 0, 150];
 
 type GamePhase = 'start' | 'choosing' | 'selected';
@@ -97,6 +97,7 @@ export default function GamePage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalCategories, setModalCategories] = useState<QuestionCategory[]>(['party', 'dating']);
   const [showNextButton, setShowNextButton] = useState(false);
+  const [mobileSoloIndex, setMobileSoloIndex] = useState<number | null>(null);
   const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const clearTimers = () => {
@@ -127,6 +128,7 @@ export default function GamePage() {
     setCards([]);
     setCardStates([]);
     setShowNextButton(false);
+    setMobileSoloIndex(null);
   };
 
   const openModal = () => {
@@ -191,6 +193,7 @@ export default function GamePage() {
     setUsedQuestionIds(currentSeen);
     setDrawCount(c => c + 1);
     setShowNextButton(false);
+    setMobileSoloIndex(null);
 
     newCards.forEach((_, i) => {
       const t = setTimeout(() => {
@@ -209,19 +212,37 @@ export default function GamePage() {
     setGamePhase('selected');
     setShowNextButton(false);
 
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
     const selectedX = FAN_X[index];
-    const newStates: CardAnimState[] = cardStates.map((_, i) => {
-      if (i === index) return 'centering';
-      return FAN_X[i] < selectedX ? 'fly-left' : 'fly-right';
-    });
-    setCardStates(newStates);
 
-    const t = setTimeout(() => {
-      setCardStates(prev => prev.map((s, i) => (i === index ? 'flipped' : s)));
-      const t2 = setTimeout(() => setShowNextButton(true), 850);
-      timerRefs.current.push(t2);
-    }, 550);
-    timerRefs.current.push(t);
+    if (isMobile) {
+      const newStates: CardAnimState[] = cardStates.map((_, i) => {
+        if (i === index) return 'resting';
+        return FAN_X[i] < selectedX ? 'fly-left' : 'fly-right';
+      });
+      setCardStates(newStates);
+
+      const t1 = setTimeout(() => {
+        setMobileSoloIndex(index);
+        setCardStates(prev => prev.map((s, i) => (i === index ? 'flipped' : s)));
+        const t2 = setTimeout(() => setShowNextButton(true), 700);
+        timerRefs.current.push(t2);
+      }, 350);
+      timerRefs.current.push(t1);
+    } else {
+      const newStates: CardAnimState[] = cardStates.map((_, i) => {
+        if (i === index) return 'centering';
+        return FAN_X[i] < selectedX ? 'fly-left' : 'fly-right';
+      });
+      setCardStates(newStates);
+
+      const t = setTimeout(() => {
+        setCardStates(prev => prev.map((s, i) => (i === index ? 'flipped' : s)));
+        const t2 = setTimeout(() => setShowNextButton(true), 850);
+        timerRefs.current.push(t2);
+      }, 550);
+      timerRefs.current.push(t);
+    }
   }, [gamePhase, cardStates]);
 
   const filteredQsTotal = questions.filter(q => activeCategories.includes(q.category));
@@ -280,19 +301,22 @@ export default function GamePage() {
         </>
       ) : (
         <>
-          <div className="fan-container">
-            {cards.map((slot, i) => (
-              <Card
-                key={`${drawCount}-${i}`}
-                slot={slot}
-                cardIndex={i}
-                animState={cardStates[i] ?? 'resting'}
-                enterDelay={ENTER_DELAYS[i]}
-                onSelect={() => handleSelect(i)}
-                onLike={likeQuestion}
-                onDislike={dislikeQuestion}
-              />
-            ))}
+          <div className={`fan-container${mobileSoloIndex !== null ? ' fan-container--solo' : ''}`}>
+            {cards.map((slot, i) => {
+              if (mobileSoloIndex !== null && mobileSoloIndex !== i) return null;
+              return (
+                <Card
+                  key={`${drawCount}-${i}`}
+                  slot={slot}
+                  cardIndex={i}
+                  animState={cardStates[i] ?? 'resting'}
+                  enterDelay={ENTER_DELAYS[i]}
+                  onSelect={() => handleSelect(i)}
+                  onLike={likeQuestion}
+                  onDislike={dislikeQuestion}
+                />
+              );
+            })}
           </div>
 
           <div className="game-bottom">
