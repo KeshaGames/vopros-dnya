@@ -264,7 +264,6 @@ export default function GamePage() {
         </>
       )}
 
-      <a href="/admin" className="game-admin-link">⚙ Администрирование</a>
     </div>
   );
 }

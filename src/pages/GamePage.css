@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: center;
   padding: 40px 20px 60px;
-  gap: 32px;
+  gap: 40px;
 }
 
 .game-header {
@@ -217,37 +217,70 @@
   transform: translateY(0);
 }
 
-.game-admin-link {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  padding: 10px 18px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(196, 181, 253, 0.6);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  letter-spacing: 0.3px;
-  transition: all 0.2s;
-}
-
-.game-admin-link:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(196, 181, 253, 0.9);
-}
-
 @media (max-width: 600px) {
-  .fan-container {
-    width: 320px;
-    height: 320px;
-    transform: scale(0.82);
-    transform-origin: center top;
+  .game-page {
+    padding: 28px 16px 60px;
+    gap: 24px;
   }
 
-  .game-page {
-    padding: 28px 16px 80px;
+  /* ── Mobile: horizontal scroll-snap slider ── */
+  .fan-container {
+    /* Break out of parent padding to bleed full-width */
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    height: auto;
+    min-height: 320px;
+    /* Slider layout */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: scroll;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Center-pad so first/last card snap to middle */
+    padding: 24px calc(50vw - 100px);
     gap: 16px;
+    box-sizing: border-box;
+    transform: none;
+    transform-origin: unset;
+  }
+
+  .fan-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Reset all absolute positioning / animation for slider cards */
+  .fan-container .card-wrapper {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    animation: none !important;
+    flex-shrink: 0;
+    scroll-snap-align: center;
+    width: 200px;
+    height: 300px;
+    transition: opacity 0.3s ease !important;
+    will-change: auto;
+    perspective: none;
+  }
+
+  /* Selected card: keep same size, just show flipped face */
+  .fan-container .card-wrapper.state-centering,
+  .fan-container .card-wrapper.state-flipped {
+    transform: none !important;
+    width: 200px;
+    height: 300px;
+    z-index: 10 !important;
+  }
+
+  /* Non-selected cards: fade out instead of fly-off */
+  .fan-container .card-wrapper.state-fly-left,
+  .fan-container .card-wrapper.state-fly-right {
+    opacity: 0 !important;
+    pointer-events: none;
+    transform: none !important;
   }
 }
